@@ -300,7 +300,7 @@ class PenjualanController extends Controller
 
         // Kalau dibatalkan dari Laporan Penjualan, kembali ke report dengan periode yang sama
         if ($request->bulan != '') {
-            return redirect()->route('laporan.penjualan', $request->only('bulan', 'tahun', 'sales_id'))->with('info', $pesan);
+            return redirect()->route('laporan.penjualan', $request->only('bulan', 'tahun', 'tanggal', 'sales_id'))->with('info', $pesan);
         }
 
         return redirect()->route('penjualan.struk', $penjualan->id)->with('info', $pesan);

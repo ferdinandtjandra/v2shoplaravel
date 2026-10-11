@@ -50,7 +50,14 @@ class LaporanPenjualanController extends Controller
 
         // Contoh nama file: penjualan-2026-10.xlsx atau penjualan-batal-2026-10.xlsx
         $namaFile = ($request->tampil == 'batal' ? 'penjualan-batal-' : 'penjualan-')
-            . $request->tahun . '-' . str_pad($request->bulan, 2, '0', STR_PAD_LEFT) . '.xlsx';
+            . $request->tahun . '-' . str_pad($request->bulan, 2, '0', STR_PAD_LEFT);
+
+        // Kalau satu tanggal saja yang dipilih, tanggalnya ikut di nama file. Contoh: penjualan-2026-10-12.xlsx
+        if (is_numeric($request->tanggal) && $request->tanggal >= 1 && $request->tanggal <= 31) {
+            $namaFile .= '-' . str_pad($request->tanggal, 2, '0', STR_PAD_LEFT);
+        }
+
+        $namaFile .= '.xlsx';
 
         // streamDownload: file langsung dikirim ke browser, tidak disimpan di server
         return response()->streamDownload(function () use ($daftar) {
@@ -105,10 +112,15 @@ class LaporanPenjualanController extends Controller
         return $query->orderBy('tanggal');
     }
 
-    // Query penjualan pada periode yang dipilih (bulan, tahun, sales), belum dipisah batal / tidak
+    // Query penjualan pada periode yang dipilih (bulan, tahun, tanggal, sales), belum dipisah batal / tidak
     private function queryPeriode(Request $request)
     {
         $query = Penjualan::whereYear('tanggal', $request->tahun)->whereMonth('tanggal', $request->bulan);
+
+        // Tanggal boleh dikosongkan = semua tanggal di bulan itu. Kalau diisi (1 sampai 31), hanya tanggal itu.
+        if (is_numeric($request->tanggal) && $request->tanggal >= 1 && $request->tanggal <= 31) {
+            $query->whereDay('tanggal', $request->tanggal);
+        }
 
         // Sales boleh dikosongkan = semua sales
         if (is_numeric($request->sales_id)) {

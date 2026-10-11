@@ -15,6 +15,16 @@
             {{-- Halaman yang sedang dibuka (biasa / batal) ikut dibawa saat periode diganti --}}
             <input type="hidden" name="tampil" value="{{ request('tampil') }}">
             <div class="row align-items-end">
+                <div class="col-md-2 mb-4 mb-md-0">
+                    <label class="form-label">Tanggal</label>
+                    {{-- Opsional. Dikosongkan = semua tanggal di bulan itu. --}}
+                    <select name="tanggal" class="form-select">
+                        <option value="">Semua</option>
+                        @for ($tgl = 1; $tgl <= 31; $tgl++)
+                            <option value="{{ $tgl }}" {{ request('tanggal') == $tgl ? 'selected' : '' }}>{{ $tgl }}</option>
+                        @endfor
+                    </select>
+                </div>
                 <div class="col-md-3 mb-4 mb-md-0">
                     <label class="form-label">Bulan</label>
                     <select name="bulan" class="form-select">
@@ -31,7 +41,7 @@
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-4 mb-4 mb-md-0">
+                <div class="col-md-3 mb-4 mb-md-0">
                     <label class="form-label">Sales</label>
                     <select name="sales_id" class="form-select">
                         <option value="">Semua Sales</option>
@@ -40,7 +50,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100"><i class="icon-base bx bx-search me-1"></i> Tampilkan</button>
                 </div>
             </div>
@@ -52,7 +62,7 @@
 
 @php
     // Pilihan periode + halaman, dibawa ke semua link di bawah supaya selalu kembali ke daftar yang sama
-    $periode = request()->only('bulan', 'tahun', 'sales_id');
+    $periode = request()->only('bulan', 'tahun', 'tanggal', 'sales_id');
 @endphp
 
 {{-- 2 halaman: penjualan biasa dan yang dibatalkan. Tombol yang sedang aktif berwarna biru. --}}
@@ -93,7 +103,7 @@
 
 <div class="card mb-6">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">{{ $tampilBatal ? 'Penjualan Dibatalkan' : 'Penjualan' }} {{ $namaBulan[(int) request('bulan')] ?? '' }} {{ request('tahun') }}</h5>
+        <h5 class="mb-0">{{ $tampilBatal ? 'Penjualan Dibatalkan' : 'Penjualan' }} {{ is_numeric(request('tanggal')) ? (int) request('tanggal') : '' }} {{ $namaBulan[(int) request('bulan')] ?? '' }} {{ request('tahun') }}</h5>
         {{-- Export mengikuti periode dan halaman (biasa / batal) yang sedang dibuka --}}
         <a href="{{ route('laporan.penjualan.export', request()->query()) }}" class="btn btn-sm btn-outline-success"><i class="icon-base bx bx-download me-1"></i> Export Excel</a>
     </div>
@@ -151,7 +161,7 @@
 
                         <td class="text-end">
                             {{-- Periode dan halaman ikut dibawa ke struk, supaya dari sana bisa kembali ke daftar ini --}}
-                            <a href="{{ route('penjualan.struk', ['id' => $penjualan->id] + request()->only('bulan', 'tahun', 'sales_id', 'tampil')) }}" class="btn btn-sm btn-icon btn-outline-primary" title="Lihat struk"><i class="icon-base bx bx-receipt"></i></a>
+                            <a href="{{ route('penjualan.struk', ['id' => $penjualan->id] + request()->only('bulan', 'tahun', 'tanggal', 'sales_id', 'tampil')) }}" class="btn btn-sm btn-icon btn-outline-primary" title="Lihat struk"><i class="icon-base bx bx-receipt"></i></a>
                         </td>
                     </tr>
                 @endforeach

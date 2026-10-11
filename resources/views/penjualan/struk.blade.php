@@ -103,7 +103,7 @@
                 {{-- Kalau struk ini dibuka dari Laporan Penjualan (ada bulan di alamat URL),
                      tombolnya kembali ke report dengan periode yang sama. Kalau tidak, ke Transaksi Baru. --}}
                 @if (request('bulan') != '')
-                    <a href="{{ route('laporan.penjualan', request()->only('bulan', 'tahun', 'sales_id', 'tampil')) }}" class="btn btn-outline-secondary w-100">
+                    <a href="{{ route('laporan.penjualan', request()->only('bulan', 'tahun', 'tanggal', 'sales_id', 'tampil')) }}" class="btn btn-outline-secondary w-100">
                         <i class="icon-base bx bx-arrow-back me-1"></i> Kembali ke Laporan Penjualan
                     </a>
                 @else
@@ -133,6 +133,7 @@
                 {{-- Periode report ikut dikirim, supaya setelah batal bisa langsung kembali ke daftar yang sama --}}
                 <input type="hidden" name="bulan" value="{{ request('bulan') }}">
                 <input type="hidden" name="tahun" value="{{ request('tahun') }}">
+                <input type="hidden" name="tanggal" value="{{ request('tanggal') }}">
                 <input type="hidden" name="sales_id" value="{{ request('sales_id') }}">
                 <div class="modal-header">
                     <h5 class="modal-title">Batalkan Transaksi {{ $penjualan->kode_transaksi }}</h5>
