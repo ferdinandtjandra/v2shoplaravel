@@ -10,6 +10,9 @@
      Bentuk struknya sendiri ada di file penjualan/_struk.blade.php
      ==================================================================== --}}
 <style>
+    /* Kertas struk 80mm: tanpa margin tambahan dari browser */
+    @page { margin: 0; }
+
     @media print {
         /* Sembunyikan semua bagian admin */
         .layout-menu, .layout-navbar, .layout-overlay, .content-backdrop, .tidak-dicetak, .container-p-y > h4, .alert { display: none !important; }
@@ -22,7 +25,8 @@
             display: block !important; width: auto !important; max-width: none !important; min-height: 0 !important;
         }
 
-        .alas-struk .ticket { width: 310px !important; max-width: 310px !important; }
+        /* Lebar cetak kertas 80mm = 72mm. Kalau sisi kanan terpotong di printer, ubah juga angka di penjualan/_struk.blade.php */
+        .alas-struk .ticket { width: 72mm !important; max-width: 72mm !important; padding: 0 2mm !important; }
     }
 </style>
 
@@ -76,6 +80,12 @@
                     <div class="border-top py-2">
                         <span class="text-muted d-block">Keterangan</span>
                         {{ $penjualan->keterangan }}
+                    </div>
+                @endif
+                @if ($penjualan->diskon > 0)
+                    <div class="d-flex justify-content-between border-top py-2">
+                        <span class="text-muted">Diskon</span>
+                        <span>- Rp. {{ number_format($penjualan->diskon) }}</span>
                     </div>
                 @endif
                 <div class="d-flex justify-content-between align-items-center border-top pt-4 mb-6">

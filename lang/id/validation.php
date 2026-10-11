@@ -52,6 +52,8 @@ return [
         'toko_id' => 'Toko',
         'sales_id' => 'Sales',
         'qty' => 'Jumlah',
+        'garansi_hari' => 'Garansi',
+        'diskon' => 'Diskon',
         'jenis' => 'Jenis',
         'alasan' => 'Alasan',
         'alasan_batal' => 'Alasan pembatalan',

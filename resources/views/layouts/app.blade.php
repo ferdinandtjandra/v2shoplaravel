@@ -28,6 +28,16 @@
         .tabel-padat small { font-size: 11px; }
         .tabel-padat .btn-sm { padding: .15rem .4rem; }
 
+        /* Grafik batang (dipakai di Dashboard dan Laba / Rugi). Dibuat dengan HTML + CSS biasa, tanpa library. */
+        .grafik { display: flex; align-items: flex-end; gap: 2px; height: 180px; border-bottom: 1px solid #e4e6e8; }
+        .grafik .kolom { flex: 1; height: 100%; display: flex; align-items: flex-end; cursor: default; border-radius: 4px 4px 0 0; }
+        .grafik .kolom:hover { background: #f2f2f6; }
+        .grafik .batang { width: 100%; background: #696cff; border-radius: 4px 4px 0 0; }
+        .grafik .kolom:hover .batang { background: #5457e0; }
+        .grafik-tanggal { display: flex; gap: 2px; font-size: 11px; color: #8592a3; margin-top: 4px; }
+        .grafik-tanggal span { flex: 1; text-align: center; }
+        .grafik-tanggal .hari-ini { color: #384551; font-weight: 700; }
+
         /* Tabel "datatable" disembunyikan dulu sampai DataTables selesai menyiapkannya (saat itu ia mendapat class "dataTable"),
            supaya tabel, kotak Search dan "Show entries" muncul bersamaan, tidak satu-satu. */
         table.datatable:not(.dataTable) { display: none; }
@@ -147,12 +157,13 @@
                     </li>
 
                     {{-- ---------- USER & SISTEM ---------- --}}
-                    <li class="menu-item {{ request()->routeIs('user.*', 'password_hapus.*', 'template_struk.*') ? 'active open' : '' }}">
+                    <li class="menu-item {{ request()->routeIs('user.*', 'password_hapus.*', 'template_struk.*', 'catatan_login.*') ? 'active open' : '' }}">
                         <a href="javascript:void(0);" class="menu-link menu-toggle"><i class="menu-icon tf-icons bx bx-cog"></i><div class="text-truncate">Pengguna &amp; Sistem</div></a>
                         <ul class="menu-sub">
                             <li class="menu-item {{ request()->routeIs('user.*') ? 'active' : '' }}"><a href="{{ route('user.index') }}" class="menu-link"><div class="text-truncate">Pengguna</div></a></li>
                             <li class="menu-item {{ request()->routeIs('password_hapus.*') ? 'active' : '' }}"><a href="{{ route('password_hapus.index') }}" class="menu-link"><div class="text-truncate">Password Hapus</div></a></li>
                             <li class="menu-item {{ request()->routeIs('template_struk.*') ? 'active' : '' }}"><a href="{{ route('template_struk.edit') }}" class="menu-link"><div class="text-truncate">Template Struk</div></a></li>
+                            <li class="menu-item {{ request()->routeIs('catatan_login.*') ? 'active' : '' }}"><a href="{{ route('catatan_login.index') }}" class="menu-link"><div class="text-truncate">Catatan Login</div></a></li>
                         </ul>
                     </li>
 
@@ -247,6 +258,35 @@
     }
     $('.rupiah').each(function () { this.value = formatRibuan(this.value); });
     $(document).on('input', '.rupiah', function () { this.value = formatRibuan(this.value); });
+
+    // Mengubah kotak pilih barang menjadi kotak PENCARIAN: daftar barang dicari ke server saat diketik,
+    // jadi halaman tidak perlu memuat ribuan barang sekaligus. Dipakai di Penjualan dan Penyesuaian Stok.
+    //   idKotak : contoh '#pilihBarang'
+    //   alamat  : alamat pencarian di server (BarangController@cari)
+    function aktifkanCariBarang(idKotak, alamat) {
+        $(idKotak).select2({
+            width: '100%',
+            placeholder: 'Ketik kode atau nama barang',
+            minimumInputLength: 2,
+            ajax: {
+                url: alamat,
+                dataType: 'json',
+                delay: 250, // tunggu 0,25 detik setelah berhenti mengetik, baru mencari
+                data: function (yangDiketik) {
+                    return { q: yangDiketik.term };
+                },
+                processResults: function (hasil) {
+                    return { results: hasil };
+                }
+            },
+            language: {
+                inputTooShort: function () { return 'Ketik minimal 2 huruf'; },
+                searching: function () { return 'Mencari...'; },
+                noResults: function () { return 'Barang tidak ditemukan'; },
+                errorLoading: function () { return 'Gagal memuat, coba lagi'; }
+            }
+        });
+    }
 
     // Tombol / form dengan class "konfirmasi" akan bertanya dulu sebelum dijalankan
     $(document).on('submit', 'form.konfirmasi', function () {

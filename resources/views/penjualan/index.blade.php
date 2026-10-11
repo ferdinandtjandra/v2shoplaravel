@@ -17,12 +17,13 @@
 
                     <div class="mb-4">
                         <label class="form-label">Barang</label>
-                        {{-- Stok dan harga tiap barang dititipkan di atribut data-..., lalu dibaca oleh JavaScript di bawah --}}
+                        {{-- Daftar barang tidak dimuat di sini. Barang dicari ke server saat kasir mengetik (JavaScript di bawah).
+                             Kalau form dikembalikan karena ada isian yang salah, barang yang tadi dipilih ($barangLama) tetap terpilih. --}}
                         <select name="barang_id" id="pilihBarang" class="form-select" required>
-                            <option value="">- Cari kode atau nama barang -</option>
-                            @foreach ($barang as $b)
-<option value="{{ $b->id }}" data-qty="{{ $b->qty }}" data-member="{{ $b->harga_member }}" data-user="{{ $b->harga_user }}" data-ongkir="{{ $b->harga_ongkir }}" {{ old('barang_id') == $b->id ? 'selected' : '' }}>{{ $b->kode }} - {{ $b->nama }}</option>
-                            @endforeach
+                            <option value=""></option>
+                            @if ($barangLama)
+                                <option value="{{ $barangLama->id }}" selected>{{ $barangLama->kode }} - {{ $barangLama->nama }} (stok {{ $barangLama->qty }})</option>
+                            @endif
                         </select>
                     </div>
 
@@ -59,8 +60,16 @@
                             <label class="form-label">Qty Beli</label>
                             <input type="number" name="qty" id="qtyBeli" class="form-control" min="1" value="{{ old('qty', 1) }}" required>
                         </div>
+                        <div class="col-6 col-md-3 mb-4">
+                            <label class="form-label">Garansi</label>
+                            <select name="garansi_hari" class="form-select">
+                                @foreach (\App\Models\PenjualanDetail::PILIHAN_GARANSI as $hari => $label)
+                                    <option value="{{ $hari }}" {{ old('garansi_hari', 0) == $hari ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         @if (Auth::user()->isBos())
-                            <div class="col-md-3 mb-4">
+                            <div class="col-6 col-md-3 mb-4">
                                 <label class="form-label">Harga Custom</label>
                                 <input type="text" name="harga_custom" id="hargaCustom" class="form-control rupiah" value="{{ old('harga_custom') }}" placeholder="opsional">
                             </div>
@@ -69,9 +78,9 @@
                             <small class="text-muted d-block">Subtotal</small>
                             <span class="fs-4 fw-bold" id="teksSubtotal">Rp. 0</span>
                         </div>
-                        <div class="col-md-auto mb-4">
-                            <button type="submit" class="btn btn-primary w-100"><i class="icon-base bx bx-plus"></i> Tambah</button>
-                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary"><i class="icon-base bx bx-plus"></i> Tambah ke Keranjang</button>
                     </div>
                 </form>
             </div>
@@ -102,6 +111,9 @@
                                 <td>
                                     <div class="fw-medium">{{ $item->barang->nama }}</div>
                                     <small class="text-muted">{{ $item->barang->kode }}</small>
+                                    @if ($item->garansi_hari > 0)
+                                        <span class="badge bg-label-info">Garansi {{ $item->garansi_hari }} hari</span>
+                                    @endif
                                 </td>
                                 <td class="text-center">{{ $item->qty }}</td>
                                 <td class="text-end text-nowrap">Rp. {{ number_format($item->harga_satuan) }}</td>
@@ -136,17 +148,34 @@
                 <small class="text-muted">{{ now()->format('j M Y, H:i') }}</small>
             </div>
             <div class="card-body">
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Jumlah barang</span>
-                    <span>{{ $keranjang->sum('qty') }} pcs</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center border-top pt-4 mb-6">
-                    <span class="fw-medium">TOTAL</span>
-                    <span class="fs-3 fw-bold text-primary">Rp. {{ number_format($total) }}</span>
-                </div>
-
                 <form method="POST" action="{{ route('penjualan.checkout') }}" id="formCheckout">
                     @csrf
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Jumlah barang</span>
+                        <span>{{ $keranjang->sum('qty') }} pcs</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subtotal</span>
+                        <span>Rp. {{ number_format($total) }}</span>
+                    </div>
+
+                    {{-- Diskon hanya bisa diisi Bos (sama seperti Harga Custom) --}}
+                    @if (Auth::user()->isBos())
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Diskon</span>
+                            <div class="input-group input-group-sm" style="max-width: 170px;">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" name="diskon" id="inputDiskon" class="form-control rupiah text-end" value="{{ old('diskon') }}" placeholder="0">
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-4 mb-6">
+                        <span class="fw-medium">TOTAL</span>
+                        {{-- data-subtotal dibaca JavaScript untuk menghitung total setelah diskon --}}
+                        <span class="fs-3 fw-bold text-primary" id="teksTotal" data-subtotal="{{ $total }}">Rp. {{ number_format($total) }}</span>
+                    </div>
+
                     <div class="mb-4">
                         <label class="form-label">Sales *</label>
                         <select name="sales_id" class="form-select" required>
@@ -201,8 +230,20 @@
 
 @section('script')
 <script>
-    // Kotak pilih barang yang bisa dicari
-    $('#pilihBarang').select2({ width: '100%' });
+    // Kotak pilih barang: mencari ke server saat diketik (fungsinya ada di layouts/app.blade.php).
+    // Hanya barang yang masih ada stoknya.
+    aktifkanCariBarang('#pilihBarang', '{{ route('barang.cari') }}');
+
+    // Data barang yang sedang dipilih (stok dan 3 harganya). null = belum ada yang dipilih.
+    // Kalau form dikembalikan karena ada isian yang salah, diisi dari barang yang tadi dipilih.
+    // Datanya disiapkan di PenjualanController (variabel dataBarangLama), lalu diubah menjadi data JavaScript.
+    var barangTerpilih = @json($dataBarangLama);
+
+    // Saat kasir memilih barang dari hasil pencarian, simpan datanya lalu tampilkan stok dan harganya
+    $('#pilihBarang').on('select2:select', function (kejadian) {
+        barangTerpilih = kejadian.params.data;
+        isiHarga();
+    });
 
     // Mengisi 1 tombol harga. Contoh: isiTombolHarga('#hargaMember', '#teksHargaMember', 15000)
     function isiTombolHarga(idRadio, idTeks, harga) {
@@ -210,20 +251,18 @@
         $(idTeks).text('Rp. ' + formatRibuan(String(harga)));
     }
 
-    // Saat barang dipilih: tampilkan stok dan isi 3 tombol harga
+    // Menampilkan stok dan mengisi 3 tombol harga dari barang yang dipilih
     function isiHarga() {
-        var pilihan = $('#pilihBarang option:selected');
-
-        if (pilihan.val() == '') {
+        if (barangTerpilih == null) {
             $('.pilihan-harga').val('').prop('disabled', true).prop('checked', false);
             $('#teksHargaMember, #teksHargaUser, #teksHargaOngkir').text('-');
             $('#qtyStock').val('-');
         } else {
-            isiTombolHarga('#hargaMember', '#teksHargaMember', pilihan.data('member'));
-            isiTombolHarga('#hargaUser', '#teksHargaUser', pilihan.data('user'));
-            isiTombolHarga('#hargaOngkir', '#teksHargaOngkir', pilihan.data('ongkir'));
-            $('#qtyStock').val(pilihan.data('qty'));
-            $('#qtyBeli').attr('max', pilihan.data('qty'));
+            isiTombolHarga('#hargaMember', '#teksHargaMember', barangTerpilih.harga_member);
+            isiTombolHarga('#hargaUser', '#teksHargaUser', barangTerpilih.harga_user);
+            isiTombolHarga('#hargaOngkir', '#teksHargaOngkir', barangTerpilih.harga_ongkir);
+            $('#qtyStock').val(barangTerpilih.qty);
+            $('#qtyBeli').attr('max', barangTerpilih.qty);
         }
 
         hitungSubtotal();
@@ -242,10 +281,24 @@
         $('#teksSubtotal').text('Rp. ' + formatRibuan(String(harga * qty)));
     }
 
-    $('#pilihBarang').on('change', isiHarga);
     $('.pilihan-harga').on('change', hitungSubtotal);
     $('#qtyBeli, #hargaCustom').on('input', hitungSubtotal);
     isiHarga();
+
+    // Total di kolom Pembayaran = subtotal keranjang - diskon (diskon hanya ada untuk Bos)
+    function hitungTotal() {
+        var subtotal = Number($('#teksTotal').data('subtotal'));
+        var diskon = Number(($('#inputDiskon').val() || '').replace(/[^0-9]/g, ''));
+        var total = subtotal - diskon;
+
+        if (total < 0) {
+            total = 0;
+        }
+
+        $('#teksTotal').text('Rp. ' + formatRibuan(String(total)));
+    }
+    $('#inputDiskon').on('input', hitungTotal);
+    hitungTotal();
 
     // Tombol Hapus / Batal: tanya dulu, baru buka kotak password.
     // Setelah password diisi, form dikirim ke alamat milik tombol yang diklik.
