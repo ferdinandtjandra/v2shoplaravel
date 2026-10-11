@@ -15,8 +15,13 @@ class AdjustStokController extends Controller
     // Form bisa dipakai semua user. Riwayat hanya bisa dilihat oleh Bos.
     public function index()
     {
-        // Barang yang stoknya 0 juga ditampilkan, karena bisa saja mau ditambah
-        $barang = Barang::orderBy('nama')->get();
+        // Daftar barang TIDAK dimuat di sini. Kotak pilih barang mencarinya ke server saat diketik
+        // (lihat BarangController@cari). Yang diambil hanya barang yang terakhir dipilih, supaya pilihannya
+        // tidak hilang kalau form dikembalikan karena ada isian yang salah.
+        $barangLama = null;
+        if (old('barang_id')) {
+            $barangLama = Barang::find(old('barang_id'));
+        }
 
         // 500 riwayat terakhir (hanya diambil kalau yang login adalah Bos)
         $riwayat = [];
@@ -25,7 +30,8 @@ class AdjustStokController extends Controller
         }
 
         return view('adjust_stok.index', [
-            'barang' => $barang,
+            'barangLama' => $barangLama,
+            'stokBarangLama' => $barangLama ? $barangLama->qty : null, // untuk dibaca JavaScript di halaman
             'riwayat' => $riwayat,
             'daftarToko' => Toko::orderBy('nama')->get(),
         ]);

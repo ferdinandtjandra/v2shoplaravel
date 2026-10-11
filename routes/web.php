@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdjustStokController;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\CatatanLoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LabaRugiController;
@@ -46,6 +47,9 @@ Route::middleware(['auth', 'aktif'])->group(function () {
 
     // Laporan Stok
     Route::get('/stok', [BarangController::class, 'index'])->name('barang.index');
+
+    // Pencarian barang untuk kotak pilih di Penjualan dan Penyesuaian Stok (dipanggil JavaScript saat mengetik)
+    Route::get('/barang/cari', [BarangController::class, 'cari'])->name('barang.cari');
 
     // Penyesuaian Stok (tambah / kurang stok dengan keterangan, misalnya pindah barang ke toko lain)
     Route::get('/adjust-stok', [AdjustStokController::class, 'index'])->name('adjust_stok.index');
@@ -136,7 +140,11 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         // Laba / Rugi
         Route::get('/laba-rugi', [LabaRugiController::class, 'index'])->name('laba_rugi.index');
         Route::post('/laba-rugi', [LabaRugiController::class, 'store'])->name('laba_rugi.store');
-        Route::get('/laba-rugi/{id}', [LabaRugiController::class, 'show'])->name('laba_rugi.show');
+        Route::get('/laba-rugi/cetak', [LabaRugiController::class, 'cetak'])->name('laba_rugi.cetak');
+        Route::get('/laba-rugi/export', [LabaRugiController::class, 'export'])->name('laba_rugi.export');
+
+        // Catatan login
+        Route::get('/catatan-login', [CatatanLoginController::class, 'index'])->name('catatan_login.index');
 
         // Laporan Penjualan
         Route::get('/laporan/penjualan', [LaporanPenjualanController::class, 'index'])->name('laporan.penjualan');

@@ -28,7 +28,7 @@
                     <div class="mb-4">
                         <label class="form-label">Catatan di bawah daftar barang</label>
                         <textarea name="catatan" id="inputCatatan" class="form-control" rows="4">{{ old('catatan', $template->catatan) }}</textarea>
-                        <div class="form-text">Boleh dikosongkan.</div>
+                        <div class="form-text">Boleh dikosongkan. Satu baris untuk satu poin, awali dengan tanda "-" supaya tampil sebagai poin.</div>
                     </div>
                     <div class="mb-6">
                         <label class="form-label">Kalimat penutup</label>
@@ -67,9 +67,26 @@
         $(idPreview).html(teksAman.replace(/\n/g, '<br>'));
     }
 
+    // Catatan: tiap baris menjadi 1 blok, sama seperti di struk asli.
+    // Baris yang diawali "-" diberi class "poin" supaya lanjutan kalimatnya lurus dengan tulisan.
+    function salinCatatanKePreview() {
+        var kotak = $('#strukCatatan').empty();
+
+        $('#inputCatatan').val().split('\n').forEach(function (baris) {
+            baris = baris.trim();
+
+            if (baris == '') {
+                return; // baris kosong dilewati
+            }
+
+            // .text() dipakai supaya huruf seperti < dan > aman
+            $('<div>').addClass(baris.charAt(0) == '-' ? 'poin' : '').text(baris).appendTo(kotak);
+        });
+    }
+
     function perbaruiPreview() {
         salinKePreview('#inputHeader', '#strukHeader');
-        salinKePreview('#inputCatatan', '#strukCatatan');
+        salinCatatanKePreview();
         salinKePreview('#inputPenutup', '#strukPenutup');
     }
 

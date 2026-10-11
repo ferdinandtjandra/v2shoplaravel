@@ -18,7 +18,24 @@ class PenjualanController extends Controller
     // Halaman Input Penjualan: pilih barang + isi keranjang + checkout
     public function index()
     {
-        $barang = Barang::where('qty', '>', 0)->orderBy('nama')->get();
+        // Daftar barang TIDAK dimuat di sini. Kotak pilih barang mencarinya ke server saat kasir mengetik
+        // (lihat BarangController@cari). Yang diambil hanya barang yang terakhir dipilih, supaya pilihannya
+        // tidak hilang kalau form dikembalikan karena ada isian yang salah.
+        $barangLama = null;
+        if (old('barang_id')) {
+            $barangLama = Barang::find(old('barang_id'));
+        }
+
+        // Stok dan harga barang itu, untuk dibaca JavaScript di halaman (null = tidak ada)
+        $dataBarangLama = null;
+        if ($barangLama) {
+            $dataBarangLama = [
+                'qty' => $barangLama->qty,
+                'harga_member' => $barangLama->harga_member,
+                'harga_user' => $barangLama->harga_user,
+                'harga_ongkir' => $barangLama->harga_ongkir,
+            ];
+        }
 
         // Keranjang milik user yang sedang login saja
         $keranjang = Keranjang::with('barang')
@@ -29,7 +46,8 @@ class PenjualanController extends Controller
         $daftarSales = User::where('role', 'sales')->where('aktif', 1)->orderBy('name')->get();
 
         return view('penjualan.index', [
-            'barang' => $barang,
+            'barangLama' => $barangLama,
+            'dataBarangLama' => $dataBarangLama,
             'keranjang' => $keranjang,
             'total' => $keranjang->sum('subtotal'),
             'daftarSales' => $daftarSales,
@@ -43,6 +61,8 @@ class PenjualanController extends Controller
             // exists:barang,id,deleted_at,NULL = barangnya harus ada DAN belum dihapus
             'barang_id' => 'required|exists:barang,id,deleted_at,NULL',
             'qty' => 'required|integer|min:1|max:100000',
+            // garansi harus salah satu dari pilihan yang tersedia (0, 1, 3, 7, ... hari)
+            'garansi_hari' => 'nullable|in:' . implode(',', array_keys(PenjualanDetail::PILIHAN_GARANSI)),
         ]);
 
         $barang = Barang::findOrFail($request->barang_id);
@@ -91,6 +111,7 @@ class PenjualanController extends Controller
             'harga_satuan' => $harga,
             'subtotal' => $harga * $qty,
             'keuntungan' => ($harga - $barang->harga_distributor) * $qty,
+            'garansi_hari' => (int) $request->garansi_hari,
         ]);
 
         return redirect()->route('penjualan.index');
@@ -142,6 +163,27 @@ class PenjualanController extends Controller
             return redirect()->route('penjualan.index')->with('error', 'Lakukan Transaksi Terlebih dahulu.');
         }
 
+        // Diskon (potongan rupiah untuk seluruh transaksi). Hanya Bos yang boleh memberi diskon,
+        // sama seperti Harga Custom. Diskon dari staff diabaikan.
+        $totalBarang = $keranjang->sum('subtotal');
+        $totalUntung = $keranjang->sum('keuntungan');
+        $diskon = 0;
+
+        if (Auth::user()->isBos()) {
+            $this->periksaAngka($request, ['diskon' => 'Diskon']);
+            $diskon = $this->angka($request->diskon);
+        }
+
+        // Diskon tidak boleh melebihi keuntungan, supaya tidak menjual di bawah modal
+        if ($diskon > $totalUntung) {
+            return redirect()->route('penjualan.index')
+                ->with('error', 'Diskon terlalu besar. Maksimal Rp ' . number_format($totalUntung) . ' supaya tidak menjual di bawah modal.')
+                ->withInput();
+        }
+
+        // PENTING: semua pemeriksaan yang bisa menolak transaksi (seperti diskon di atas) harus dilakukan
+        // SEBELUM DB::beginTransaction. Kalau menolak di tengah transaksi tanpa DB::rollBack, pesan errornya ikut hilang.
+
         // DB::beginTransaction: semua perubahan di bawah ini dianggap satu paket.
         // Kalau ada yang gagal di tengah jalan, semuanya dibatalkan (rollBack),
         // jadi tidak ada penjualan yang tersimpan setengah-setengah.
@@ -157,8 +199,9 @@ class PenjualanController extends Controller
             'struk_catatan' => $template->catatan,
             'struk_penutup' => $template->penutup,
             'tanggal' => now(),
-            'total' => $keranjang->sum('subtotal'),
-            'keuntungan' => $keranjang->sum('keuntungan'),
+            'total' => $totalBarang - $diskon,          // uang yang dibayar pembeli
+            'diskon' => $diskon,
+            'keuntungan' => $totalUntung - $diskon,     // diskon mengurangi keuntungan
             'keterangan' => $request->keterangan,
             'sales_id' => $request->sales_id,
             'kasir_id' => Auth::id(),
@@ -198,6 +241,7 @@ class PenjualanController extends Controller
                 'harga_satuan' => $item->harga_satuan,
                 'subtotal' => $item->subtotal,
                 'keuntungan' => $item->keuntungan,
+                'garansi_hari' => $item->garansi_hari,
             ]);
 
             // Kurangi stok + catat di kartu stok

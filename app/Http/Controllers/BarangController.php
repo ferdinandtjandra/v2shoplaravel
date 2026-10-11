@@ -133,6 +133,48 @@ class BarangController extends Controller
         return $query;
     }
 
+    // Pencarian barang untuk kotak pilih di halaman Penjualan dan Penyesuaian Stok.
+    // Dipanggil oleh JavaScript setiap kasir mengetik, dan menjawab dalam bentuk JSON (maksimal 30 barang).
+    // Dengan cara ini halaman tidak perlu memuat ribuan barang sekaligus.
+    //
+    //   /barang/cari?q=samsung              -> hanya barang yang masih ada stoknya (untuk Penjualan)
+    //   /barang/cari?q=samsung&stok=semua   -> termasuk yang stoknya 0 (untuk Penyesuaian Stok)
+    //
+    // Harga distributor (modal) sengaja TIDAK ikut dikirim, karena halaman ini juga dipakai staff.
+    public function cari(Request $request)
+    {
+        $kata = is_string($request->q) ? trim($request->q) : '';
+
+        // Pencarian baru jalan setelah diketik minimal 2 huruf
+        if (strlen($kata) < 2) {
+            return response()->json([]);
+        }
+
+        $query = Barang::where(function ($q) use ($kata) {
+            $q->where('nama', 'like', '%' . $kata . '%')
+                ->orWhere('kode', 'like', '%' . $kata . '%');
+        });
+
+        if ($request->stok != 'semua') {
+            $query->where('qty', '>', 0);
+        }
+
+        $hasil = [];
+
+        foreach ($query->orderBy('nama')->orderBy('id')->limit(30)->get() as $barang) {
+            $hasil[] = [
+                'id' => $barang->id,
+                'text' => $barang->kode . ' - ' . $barang->nama . ' (stok ' . $barang->qty . ')', // tulisan di daftar pilihan
+                'qty' => $barang->qty,
+                'harga_member' => $barang->harga_member,
+                'harga_user' => $barang->harga_user,
+                'harga_ongkir' => $barang->harga_ongkir,
+            ];
+        }
+
+        return response()->json($hasil);
+    }
+
     // Form Barang Masuk
     public function create()
     {

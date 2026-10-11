@@ -15,12 +15,13 @@
 
                     <div class="mb-4">
                         <label class="form-label">Barang <span class="text-danger">*</span></label>
-                        {{-- Stok tiap barang dititipkan di data-qty, lalu dibaca JavaScript di bawah --}}
+                        {{-- Daftar barang tidak dimuat di sini. Barang dicari ke server saat diketik (JavaScript di bawah),
+                             termasuk barang yang stoknya 0. --}}
                         <select name="barang_id" id="pilihBarang" class="form-select" required>
-                            <option value="">- Cari kode atau nama barang -</option>
-                            @foreach ($barang as $b)
-<option value="{{ $b->id }}" data-qty="{{ $b->qty }}" {{ old('barang_id') == $b->id ? 'selected' : '' }}>{{ $b->kode }} - {{ $b->nama }}</option>
-                            @endforeach
+                            <option value=""></option>
+                            @if ($barangLama)
+                                <option value="{{ $barangLama->id }}" selected>{{ $barangLama->kode }} - {{ $barangLama->nama }} (stok {{ $barangLama->qty }})</option>
+                            @endif
                         </select>
                         {{-- Diisi JavaScript setelah barang dipilih. Contoh: "Stok saat ini 5 pcs" --}}
                         <div class="form-text fw-medium" id="teksStok"></div>
@@ -138,22 +139,30 @@
 
 @section('script')
 <script>
-    // Kotak pilih barang yang bisa dicari
-    $('#pilihBarang').select2({ width: '100%' });
+    // Kotak pilih barang: mencari ke server saat diketik (fungsinya ada di layouts/app.blade.php).
+    // stok=semua: barang yang stoknya 0 ikut dicari, karena bisa saja mau ditambah.
+    aktifkanCariBarang('#pilihBarang', '{{ route('barang.cari', ['stok' => 'semua']) }}');
+
+    // Stok barang yang sedang dipilih. null = belum ada yang dipilih.
+    var stokTerpilih = @json($stokBarangLama);
+
+    // Saat barang dipilih dari hasil pencarian, simpan stoknya lalu tampilkan
+    $('#pilihBarang').on('select2:select', function (kejadian) {
+        stokTerpilih = kejadian.params.data.qty;
+        tampilkanStok();
+    });
 
     // Menampilkan stok barang yang dipilih di bawah kotak Barang,
     // dan peringatan di bawah Jumlah kalau pengurangan melebihi stok.
     function tampilkanStok() {
-        var pilihan = $('#pilihBarang option:selected');
-
         $('#teksStok').text('');
         $('#teksPeringatan').text('');
 
-        if (pilihan.val() == '') {
+        if (stokTerpilih == null) {
             return;
         }
 
-        var stok = Number(pilihan.data('qty'));
+        var stok = Number(stokTerpilih);
         var qty = Number($('#qtyAdjust').val() || 0);
         var jenis = $('.pilihan-jenis:checked').val();
 
@@ -184,7 +193,6 @@
     $('#pilihAlasan').on('change', tampilkanToko);
     tampilkanToko();
 
-    $('#pilihBarang').on('change', tampilkanStok);
     $('.pilihan-jenis').on('change', tampilkanStok);
     $('#qtyAdjust').on('input', tampilkanStok);
     tampilkanStok();

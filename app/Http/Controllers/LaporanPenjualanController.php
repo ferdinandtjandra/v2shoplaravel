@@ -60,7 +60,8 @@ class LaporanPenjualanController extends Controller
             // Baris judul kolom
             $writer->addRow(Row::fromValues([
                 'Kode Transaksi', 'Tanggal', 'Jam', 'Sales', 'Kasir', 'Status',
-                'Nama Barang', 'Qty', 'Harga Satuan', 'Subtotal', 'Keuntungan', 'Keterangan',
+                'Nama Barang', 'Qty', 'Harga Satuan', 'Subtotal', 'Keuntungan Barang', 'Garansi (hari)',
+                'Diskon Transaksi', 'Total Transaksi', 'Keterangan',
             ]));
 
             foreach ($daftar as $penjualan) {
@@ -77,6 +78,9 @@ class LaporanPenjualanController extends Controller
                         $item->harga_satuan,
                         $item->subtotal,
                         $item->keuntungan,
+                        $item->garansi_hari,
+                        $penjualan->diskon,
+                        $penjualan->total,
                         $penjualan->keterangan ?? '',
                     ]));
                 }

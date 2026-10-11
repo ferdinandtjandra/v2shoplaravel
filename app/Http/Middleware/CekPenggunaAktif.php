@@ -13,6 +13,8 @@ class CekPenggunaAktif
     public function handle(Request $request, Closure $next)
     {
         if (! Auth::user()->aktif) {
+            \App\Models\CatatanLogin::catat($request, 'dikeluarkan', Auth::id(), Auth::user()->username);
+
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

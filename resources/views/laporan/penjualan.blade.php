@@ -121,13 +121,22 @@
                             {{-- Tiap barang 1 baris: nama x qty, harganya di kanan --}}
                             @foreach ($penjualan->detail as $item)
                                 <div class="d-flex justify-content-between gap-3">
-                                    <span>{{ $item->nama_barang }} <span class="text-muted">x{{ $item->qty }}</span></span>
+                                    <span>{{ $item->nama_barang }} <span class="text-muted">x{{ $item->qty }}</span>
+                                        @if ($item->garansi_hari > 0)
+                                            <span class="badge bg-label-info">garansi {{ $item->garansi_hari }} hari</span>
+                                        @endif
+                                    </span>
                                     <span class="text-muted text-nowrap">{{ number_format($item->subtotal) }}</span>
                                 </div>
                             @endforeach
                         </td>
                         <td>{{ $penjualan->sales->name ?? '-' }}</td>
-                        <td class="text-end text-nowrap fw-medium" data-order="{{ $penjualan->total }}">{{ number_format($penjualan->total) }}</td>
+                        <td class="text-end text-nowrap fw-medium" data-order="{{ $penjualan->total }}">
+                            {{ number_format($penjualan->total) }}
+                            @if ($penjualan->diskon > 0)
+                                <small class="text-muted d-block">diskon {{ number_format($penjualan->diskon) }}</small>
+                            @endif
+                        </td>
 
                         @if ($tampilBatal)
                             {{-- Siapa yang membatalkan, kapan, dan alasannya --}}

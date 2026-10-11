@@ -13,16 +13,6 @@
     .kotak-angka .label-angka { font-size: 13px; color: #8592a3; }
     .kotak-angka .angka { font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: #384551; }
     .kotak-angka .ikon { width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
-
-    /* Grafik batang penjualan harian (dibuat dengan HTML + CSS biasa, tanpa library) */
-    .grafik { display: flex; align-items: flex-end; gap: 2px; height: 180px; border-bottom: 1px solid #e4e6e8; }
-    .grafik .kolom { flex: 1; height: 100%; display: flex; align-items: flex-end; cursor: default; border-radius: 4px 4px 0 0; }
-    .grafik .kolom:hover { background: #f2f2f6; }
-    .grafik .batang { width: 100%; background: #696cff; border-radius: 4px 4px 0 0; }
-    .grafik .kolom:hover .batang { background: #5457e0; }
-    .grafik-tanggal { display: flex; gap: 2px; font-size: 11px; color: #8592a3; margin-top: 4px; }
-    .grafik-tanggal span { flex: 1; text-align: center; }
-    .grafik-tanggal .hari-ini { color: #384551; font-weight: 700; }
 </style>
 
 {{-- ================= PENGINGAT (paling atas, mencolok) ================= --}}

@@ -14,10 +14,11 @@ class TemplateStrukController extends Controller
         $contoh = (object) [
             'tanggal' => now(),
             'kode_transaksi' => config('toko.kode') . '-' . date('Y/m') . '-00001',
-            'total' => 450000,
+            'diskon' => 20000,      // contoh diskon, supaya baris Subtotal dan Diskon ikut terlihat
+            'total' => 430000,      // 450.000 - diskon 20.000
             'detail' => [
-                (object) ['nama_barang' => 'Contoh Barang A', 'qty' => 1, 'subtotal' => 300000],
-                (object) ['nama_barang' => 'Contoh Barang B', 'qty' => 2, 'subtotal' => 150000],
+                (object) ['nama_barang' => 'Contoh Barang A', 'qty' => 1, 'harga_satuan' => 300000, 'subtotal' => 300000, 'garansi_hari' => 7], // contoh barang bergaransi
+                (object) ['nama_barang' => 'Contoh Barang B', 'qty' => 2, 'harga_satuan' => 75000, 'subtotal' => 150000, 'garansi_hari' => 0],
             ],
         ];
 
