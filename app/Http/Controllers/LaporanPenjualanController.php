@@ -67,7 +67,7 @@ class LaporanPenjualanController extends Controller
             // Baris judul kolom
             $writer->addRow(Row::fromValues([
                 'Kode Transaksi', 'Tanggal', 'Jam', 'Sales', 'Kasir', 'Status',
-                'Nama Barang', 'Qty', 'Harga Satuan', 'Subtotal', 'Keuntungan Barang', 'Garansi (hari)',
+                'Nama Barang', 'Qty', 'Harga Satuan', 'Harga Custom', 'Subtotal', 'Keuntungan Barang', 'Garansi (hari)',
                 'Diskon Transaksi', 'Total Transaksi', 'Keterangan',
             ]));
 
@@ -83,6 +83,7 @@ class LaporanPenjualanController extends Controller
                         $item->nama_barang,
                         $item->qty,
                         $item->harga_satuan,
+                        $item->harga_custom ? 'Ya' : 'Tidak',
                         $item->subtotal,
                         $item->keuntungan,
                         $item->garansi_hari,

@@ -12,10 +12,13 @@
             <div class="card-body">
                 <span class="badge bg-label-primary mb-2">{{ $barang->kode }}</span>
                 <h5 class="mb-4">{{ $barang->nama }}</h5>
-                <div class="d-flex justify-content-between border-top py-3">
-                    <span class="text-muted">Supplier</span>
-                    <span>{{ $barang->supplier->perusahaan ?? '-' }}</span>
-                </div>
+                {{-- Supplier hanya terlihat oleh Bos, sama seperti di Laporan Stok --}}
+                @if (Auth::user()->isBos())
+                    <div class="d-flex justify-content-between border-top py-3">
+                        <span class="text-muted">Supplier</span>
+                        <span>{{ $barang->supplier->perusahaan ?? '-' }}</span>
+                    </div>
+                @endif
                 <div class="d-flex justify-content-between border-top py-3">
                     <span class="text-muted">Tanggal masuk</span>
                     <span>{{ $barang->tanggal_masuk->format('j M Y') }}</span>
@@ -47,6 +50,11 @@
                         <label class="form-label">Keterangan Retur <span class="text-danger">*</span></label>
                         <textarea name="keterangan" class="form-control" rows="4" placeholder="Contoh: layar bergaris, tidak bisa disentuh" required>{{ old('keterangan') }}</textarea>
                     </div>
+                    <div class="mb-6">
+                        <label class="form-label">Disetujui oleh <span class="text-danger">*</span></label>
+                        <input type="text" name="disetujui_oleh" class="form-control" value="{{ old('disetujui_oleh') }}" maxlength="100" placeholder="Nama yang menyetujui retur ini" required>
+                        <div class="form-text">Siapa yang meng-ACC retur ini. Ikut tampil di Laporan Retur.</div>
+                    </div>
                     <div class="d-flex justify-content-end gap-2">
                         <a href="{{ route('retur.pilih') }}" class="btn btn-outline-secondary">Batal</a>
                         <button type="submit" class="btn btn-primary"><i class="icon-base bx bx-save me-1"></i> Simpan Retur</button>
@@ -66,7 +74,7 @@
     <div class="table-responsive">
         <table class="table table-hover tabel-padat mb-0">
             <thead>
-                <tr><th>Waktu</th><th>Kode</th><th class="text-end">Qty</th><th>Keterangan</th><th>Diinput oleh</th><th>Status</th></tr>
+                <tr><th>Waktu</th><th>Kode</th><th class="text-end">Qty</th><th>Keterangan</th><th>Disetujui oleh</th><th>Diinput oleh</th><th>Status</th></tr>
             </thead>
             <tbody>
                 @forelse ($riwayat as $r)
@@ -75,6 +83,7 @@
                         <td class="text-nowrap">{{ $r->kode }}</td>
                         <td class="text-end">{{ $r->qty }}</td>
                         <td>{{ $r->keterangan }}</td>
+                        <td>{{ $r->disetujui_oleh ?: '-' }}</td>
                         <td>{{ $r->user->name ?? '-' }}</td>
                         <td class="text-nowrap">
                             @if ($r->sudah_kembali)
@@ -86,7 +95,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-muted py-6">Barang ini belum pernah diretur.</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-6">Barang ini belum pernah diretur.</td></tr>
                 @endforelse
             </tbody>
         </table>

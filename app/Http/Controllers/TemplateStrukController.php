@@ -34,12 +34,16 @@ class TemplateStrukController extends Controller
             'header' => 'required|max:500',
             'catatan' => 'nullable|max:1000',
             'penutup' => 'nullable|max:100',
+            'catatan_tanda_terima' => 'nullable|max:1000',
+            'catatan_nota_service' => 'nullable|max:1000',
         ]);
 
         $template = TemplateStruk::ambil();
         $template->header = $request->header;
         $template->catatan = $request->catatan;
         $template->penutup = $request->penutup;
+        $template->catatan_tanda_terima = $request->catatan_tanda_terima;
+        $template->catatan_nota_service = $request->catatan_nota_service;
         $template->save();
 
         return redirect()->route('template_struk.edit')->with('info', 'Template struk berhasil disimpan.');

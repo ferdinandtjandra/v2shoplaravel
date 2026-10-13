@@ -69,6 +69,12 @@
     </div>
 
     <div class="col-xl-5 mb-6">
+        @include('_service_ringkas')
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-6 mb-6">
         @include('_stok_menipis')
     </div>
 </div>

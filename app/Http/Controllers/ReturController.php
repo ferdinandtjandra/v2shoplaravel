@@ -46,6 +46,7 @@ class ReturController extends Controller
         $request->validate([
             'qty' => 'required|integer|min:1|max:1000000',
             'keterangan' => 'required|max:1000',
+            'disetujui_oleh' => 'required|max:100',   // nama yang menyetujui retur, diketik bebas
         ]);
 
         DB::beginTransaction();
@@ -62,6 +63,7 @@ class ReturController extends Controller
             'barang_id' => $barang->id,
             'qty' => $request->qty,
             'keterangan' => $request->keterangan,
+            'disetujui_oleh' => $request->disetujui_oleh,
             'tanggal_retur' => now(),
             'user_id' => Auth::id(),
         ]);

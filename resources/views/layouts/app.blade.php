@@ -110,6 +110,16 @@
                         </ul>
                     </li>
 
+                    {{-- ---------- SERVICE ---------- --}}
+                    <li class="menu-item {{ request()->routeIs('service.*', 'laporan.service*') ? 'active open' : '' }}">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle"><i class="menu-icon tf-icons bx bx-wrench"></i><div class="text-truncate">Service</div></a>
+                        <ul class="menu-sub">
+                            <li class="menu-item {{ request()->routeIs('service.*') && ! request()->routeIs('service.create') ? 'active' : '' }}"><a href="{{ route('service.index') }}" class="menu-link"><div class="text-truncate">Daftar Service</div></a></li>
+                            <li class="menu-item {{ request()->routeIs('service.create') ? 'active' : '' }}"><a href="{{ route('service.create') }}" class="menu-link"><div class="text-truncate">Terima Service</div></a></li>
+                            <li class="menu-item {{ request()->routeIs('laporan.service*') ? 'active' : '' }}"><a href="{{ route('laporan.service') }}" class="menu-link"><div class="text-truncate">Laporan Service</div></a></li>
+                        </ul>
+                    </li>
+
                     {{-- ---------- STOK ---------- --}}
                     <li class="menu-item {{ request()->routeIs('barang.*', 'adjust_stok.*') ? 'active open' : '' }}">
                         <a href="javascript:void(0);" class="menu-link menu-toggle"><i class="menu-icon tf-icons bx bx-box"></i><div class="text-truncate">Stok</div></a>
@@ -173,11 +183,20 @@
                     <li class="menu-item {{ request()->routeIs('penjualan.*') ? 'active' : '' }}">
                         <a href="{{ route('penjualan.index') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-cart"></i><div class="text-truncate">Penjualan</div></a>
                     </li>
+                    <li class="menu-item {{ request()->routeIs('service.*') ? 'active' : '' }}">
+                        <a href="{{ route('service.index') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-wrench"></i><div class="text-truncate">Service</div></a>
+                    </li>
                     <li class="menu-item {{ request()->routeIs('barang.index') ? 'active' : '' }}">
                         <a href="{{ route('barang.index') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-box"></i><div class="text-truncate">Laporan Stok</div></a>
                     </li>
                     <li class="menu-item {{ request()->routeIs('adjust_stok.*') ? 'active' : '' }}">
                         <a href="{{ route('adjust_stok.index') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-transfer"></i><div class="text-truncate">Penyesuaian Stok</div></a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('retur.pilih', 'retur.create') ? 'active' : '' }}">
+                        <a href="{{ route('retur.pilih') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-undo"></i><div class="text-truncate">Input Retur</div></a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('retur.index') ? 'active' : '' }}">
+                        <a href="{{ route('retur.index') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-list-ul"></i><div class="text-truncate">Laporan Retur</div></a>
                     </li>
 
                 @endif

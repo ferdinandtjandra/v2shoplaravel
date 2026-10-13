@@ -28,7 +28,14 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label d-block">Harga Jual</label>
+                        <label class="form-label d-block">
+                            Harga Jual
+                            {{-- Hanya Bos: harga modal barang yang dipilih, ditulis abu-abu di samping judul.
+                                 Isinya diisi JavaScript, contoh: (harga modal Rp 42,000) --}}
+                            @if (Auth::user()->isBos())
+                                <span id="teksModal" style="color: #6c757d; font-weight: 400; text-transform: none;"></span>
+                            @endif
+                        </label>
                         {{-- 3 pilihan harga dari database. Angkanya diisi oleh JavaScript setelah barang dipilih. --}}
                         <div class="btn-group w-100" role="group">
                             <input type="radio" class="btn-check pilihan-harga" name="harga_pilihan" id="hargaMember" value="" disabled>
@@ -51,16 +58,18 @@
                         </div>
                     </div>
 
-                    <div class="row align-items-end">
-                        <div class="col-6 col-md-2 mb-4">
+                    {{-- Kotak-kotak isian. class "col-md" (tanpa angka) = lebarnya dibagi rata,
+                         jadi tetap rapi baik untuk staff (3 kotak) maupun Bos (4 kotak). --}}
+                    <div class="row">
+                        <div class="col-6 col-md mb-4">
                             <label class="form-label">Stok</label>
                             <input type="text" id="qtyStock" class="form-control" value="-" readonly>
                         </div>
-                        <div class="col-6 col-md-2 mb-4">
+                        <div class="col-6 col-md mb-4">
                             <label class="form-label">Qty Beli</label>
                             <input type="number" name="qty" id="qtyBeli" class="form-control" min="1" value="{{ old('qty', 1) }}" required>
                         </div>
-                        <div class="col-6 col-md-3 mb-4">
+                        <div class="col-6 col-md mb-4">
                             <label class="form-label">Garansi</label>
                             <select name="garansi_hari" class="form-select">
                                 @foreach (\App\Models\PenjualanDetail::PILIHAN_GARANSI as $hari => $label)
@@ -68,18 +77,24 @@
                                 @endforeach
                             </select>
                         </div>
+                        {{-- Harga Custom hanya untuk Bos --}}
                         @if (Auth::user()->isBos())
-                            <div class="col-6 col-md-3 mb-4">
+                            <div class="col-6 col-md mb-4">
                                 <label class="form-label">Harga Custom</label>
                                 <input type="text" name="harga_custom" id="hargaCustom" class="form-control rupiah" value="{{ old('harga_custom') }}" placeholder="opsional">
                             </div>
                         @endif
-                        <div class="col-md mb-4 text-md-end">
-                            <small class="text-muted d-block">Subtotal</small>
-                            <span class="fs-4 fw-bold" id="teksSubtotal">Rp. 0</span>
-                        </div>
                     </div>
-                    <div class="text-end">
+
+                    {{-- Baris bawah: subtotal di kiri, tombol di kanan. Subtotal punya baris sendiri yang lebar,
+                         dan "text-nowrap" membuat "Rp. 1,000,000" tidak pernah terpotong jadi dua baris. --}}
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 border-top pt-4">
+                        <div>
+                            <small class="text-muted d-block">Subtotal</small>
+                            <span class="fs-4 fw-bold text-nowrap" id="teksSubtotal">Rp. 0</span>
+                            {{-- Peringatan untuk Bos kalau Harga Custom di bawah modal (diisi JavaScript) --}}
+                            <small class="text-danger d-block" id="teksPeringatanCustom"></small>
+                        </div>
                         <button type="submit" class="btn btn-primary"><i class="icon-base bx bx-plus"></i> Tambah ke Keranjang</button>
                     </div>
                 </form>
@@ -116,7 +131,16 @@
                                     @endif
                                 </td>
                                 <td class="text-center">{{ $item->qty }}</td>
-                                <td class="text-end text-nowrap">Rp. {{ number_format($item->harga_satuan) }}</td>
+                                <td class="text-end text-nowrap">
+                                    Rp. {{ number_format($item->harga_satuan) }}
+                                    @if ($item->harga_custom)
+                                        <span class="badge bg-label-warning">custom</span>
+                                    @endif
+                                    {{-- Harga modal per pcs: hanya Bos yang melihat --}}
+                                    @if (Auth::user()->isBos())
+                                        <small class="text-muted d-block">modal {{ number_format($item->barang->harga_distributor) }}</small>
+                                    @endif
+                                </td>
                                 <td class="text-end text-nowrap fw-medium">Rp. {{ number_format($item->subtotal) }}</td>
                                 <td class="text-end">
                                     <button type="button" class="btn btn-sm btn-outline-danger tombol-hapus" title="Hapus"
@@ -257,12 +281,18 @@
             $('.pilihan-harga').val('').prop('disabled', true).prop('checked', false);
             $('#teksHargaMember, #teksHargaUser, #teksHargaOngkir').text('-');
             $('#qtyStock').val('-');
+            $('#teksModal').text('');
         } else {
             isiTombolHarga('#hargaMember', '#teksHargaMember', barangTerpilih.harga_member);
             isiTombolHarga('#hargaUser', '#teksHargaUser', barangTerpilih.harga_user);
             isiTombolHarga('#hargaOngkir', '#teksHargaOngkir', barangTerpilih.harga_ongkir);
             $('#qtyStock').val(barangTerpilih.qty);
             $('#qtyBeli').attr('max', barangTerpilih.qty);
+
+            // Harga modal hanya ada di data kalau yang login Bos (server tidak mengirimnya ke staff)
+            if (barangTerpilih.harga_distributor !== undefined) {
+                $('#teksModal').text('(harga modal Rp ' + formatRibuan(String(barangTerpilih.harga_distributor)) + ')');
+            }
         }
 
         hitungSubtotal();
@@ -276,6 +306,13 @@
         if (hargaCustom > 0) {
             harga = hargaCustom;
         }
+
+        // Peringatan langsung kalau Harga Custom di bawah modal (server tetap akan menolaknya)
+        var peringatan = '';
+        if (barangTerpilih != null && barangTerpilih.harga_distributor !== undefined && hargaCustom > 0 && hargaCustom < barangTerpilih.harga_distributor) {
+            peringatan = 'Harga Custom di bawah modal (Rp ' + formatRibuan(String(barangTerpilih.harga_distributor)) + ').';
+        }
+        $('#teksPeringatanCustom').text(peringatan);
 
         var qty = Number($('#qtyBeli').val() || 0);
         $('#teksSubtotal').text('Rp. ' + formatRibuan(String(harga * qty)));

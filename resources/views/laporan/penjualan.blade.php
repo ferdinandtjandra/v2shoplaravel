@@ -132,6 +132,9 @@
                             @foreach ($penjualan->detail as $item)
                                 <div class="d-flex justify-content-between gap-3">
                                     <span>{{ $item->nama_barang }} <span class="text-muted">x{{ $item->qty }}</span>
+                                        @if ($item->harga_custom)
+                                            <span class="badge bg-label-warning">harga custom {{ number_format($item->harga_satuan) }}</span>
+                                        @endif
                                         @if ($item->garansi_hari > 0)
                                             <span class="badge bg-label-info">garansi {{ $item->garansi_hari }} hari</span>
                                         @endif

@@ -7,6 +7,7 @@ use App\Models\NotaJatuhTempo;
 use App\Models\Pengingat;
 use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
+use App\Models\Service;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -67,6 +68,8 @@ class DashboardController extends Controller
             ->get();
 
         return view('dashboard', [
+            'serviceAktif' => $this->serviceAktif(),
+            'serviceSiapDiambil' => $this->serviceSiapDiambil(),
             'pengingat' => Pengingat::untukDashboard(),
             'penjualanHariIni' => $penjualanHariIni,
             'penjualanBulanIni' => $penjualanBulanIni,
@@ -88,11 +91,25 @@ class DashboardController extends Controller
         $transaksiSaya = Penjualan::whereNull('dibatalkan_at')->where('kasir_id', Auth::id())->whereDate('tanggal', date('Y-m-d'))->orderBy('id', 'desc')->get();
 
         return view('dashboard_staff', [
+            'serviceAktif' => $this->serviceAktif(),
+            'serviceSiapDiambil' => $this->serviceSiapDiambil(),
             'pengingat' => Pengingat::untukDashboard(),
             'transaksiSaya' => $transaksiSaya,
             'stokMenipis' => $this->stokMenipis(),
             'jumlahBarang' => Barang::where('qty', '>', 0)->count(),
         ]);
+    }
+
+    // Jumlah service yang sedang dikerjakan
+    private function serviceAktif()
+    {
+        return Service::whereIn('status', ['diterima', 'dikerjakan'])->count();
+    }
+
+    // Service yang sudah selesai tapi belum diambil pelanggan, yang paling lama menunggu di atas
+    private function serviceSiapDiambil()
+    {
+        return Service::where('status', 'selesai')->orderBy('tanggal_selesai')->get();
     }
 
     // 10 barang dengan stok paling sedikit (yang masih ada stoknya)

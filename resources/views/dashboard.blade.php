@@ -129,9 +129,9 @@
     </div>
 </div>
 
-{{-- ================= 3. TRANSAKSI TERAKHIR + NOTA + STOK ================= --}}
+{{-- ================= 3. TRANSAKSI TERAKHIR + SERVICE + NOTA + STOK (2 x 2 kotak) ================= --}}
 <div class="row">
-    <div class="col-xl-4 mb-6">
+    <div class="col-xl-6 mb-6">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Transaksi Terakhir</h5>
@@ -157,7 +157,11 @@
         </div>
     </div>
 
-    <div class="col-xl-4 mb-6">
+    <div class="col-xl-6 mb-6">
+        @include('_service_ringkas')
+    </div>
+
+    <div class="col-xl-6 mb-6">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Nota Jatuh Tempo</h5>
@@ -190,7 +194,7 @@
         </div>
     </div>
 
-    <div class="col-xl-4 mb-6">
+    <div class="col-xl-6 mb-6">
         @include('_stok_menipis')
     </div>
 </div>

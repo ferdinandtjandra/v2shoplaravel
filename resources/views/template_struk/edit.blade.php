@@ -35,6 +35,18 @@
                         <input type="text" name="penutup" id="inputPenutup" class="form-control" value="{{ old('penutup', $template->penutup) }}" maxlength="100">
                     </div>
 
+                    <h6 class="text-muted text-uppercase small mb-3 mt-2">Service</h6>
+                    <div class="mb-4">
+                        <label class="form-label">Catatan di surat tanda terima service</label>
+                        <textarea name="catatan_tanda_terima" class="form-control" rows="4">{{ old('catatan_tanda_terima', $template->catatan_tanda_terima) }}</textarea>
+                        <div class="form-text">Syarat toko saat HP ditinggal. Satu baris untuk satu poin, awali dengan tanda "-".</div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="form-label">Catatan di nota service</label>
+                        <textarea name="catatan_nota_service" class="form-control" rows="3">{{ old('catatan_nota_service', $template->catatan_nota_service) }}</textarea>
+                        <div class="form-text">Misalnya syarat garansi service. Header dan kalimat penutup memakai yang di atas.</div>
+                    </div>
+
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary"><i class="icon-base bx bx-save me-1"></i> Simpan Template</button>
                     </div>

@@ -23,6 +23,8 @@ class KartuStok extends Model
         'retur' => 'Retur ke supplier',
         'retur_kembali' => 'Retur kembali',
         'adjust' => 'Penyesuaian stok',
+        'service' => 'Dipakai service',
+        'batal_service' => 'Batal dipakai service',
         'edit' => 'Edit barang',
     ];
 

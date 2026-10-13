@@ -35,6 +35,11 @@ class PenjualanController extends Controller
                 'harga_user' => $barangLama->harga_user,
                 'harga_ongkir' => $barangLama->harga_ongkir,
             ];
+
+            // Harga modal hanya dikirim ke halaman kalau yang login adalah Bos
+            if (Auth::user()->isBos()) {
+                $dataBarangLama['harga_distributor'] = $barangLama->harga_distributor;
+            }
         }
 
         // Keranjang milik user yang sedang login saja
@@ -71,11 +76,16 @@ class PenjualanController extends Controller
         // 1. Tentukan harga jual.
         //    Bos boleh mengetik harga custom. User lain wajib memilih salah satu harga dari database.
         $harga = 0;
+        $pakaiHargaCustom = false; // true kalau harganya diketik sendiri oleh Bos
         if (Auth::user()->isBos()) {
             // Harga custom: tolak minus, huruf, dan angka yang terlalu besar
             $this->periksaAngka($request, ['harga_custom' => 'Harga Custom']);
 
             $harga = $this->angka($request->harga_custom);
+
+            if ($harga > 0) {
+                $pakaiHargaCustom = true;
+            }
         }
 
         if ($harga == 0) {
@@ -109,6 +119,7 @@ class PenjualanController extends Controller
             'barang_id' => $barang->id,
             'qty' => $qty,
             'harga_satuan' => $harga,
+            'harga_custom' => $pakaiHargaCustom,
             'subtotal' => $harga * $qty,
             'keuntungan' => ($harga - $barang->harga_distributor) * $qty,
             'garansi_hari' => (int) $request->garansi_hari,
@@ -239,6 +250,7 @@ class PenjualanController extends Controller
                 'nama_barang' => $barang->nama,
                 'qty' => $item->qty,
                 'harga_satuan' => $item->harga_satuan,
+                'harga_custom' => $item->harga_custom,
                 'subtotal' => $item->subtotal,
                 'keuntungan' => $item->keuntungan,
                 'garansi_hari' => $item->garansi_hari,

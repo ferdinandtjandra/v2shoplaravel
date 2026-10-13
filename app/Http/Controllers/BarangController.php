@@ -140,7 +140,8 @@ class BarangController extends Controller
     //   /barang/cari?q=samsung              -> hanya barang yang masih ada stoknya (untuk Penjualan)
     //   /barang/cari?q=samsung&stok=semua   -> termasuk yang stoknya 0 (untuk Penyesuaian Stok)
     //
-    // Harga distributor (modal) sengaja TIDAK ikut dikirim, karena halaman ini juga dipakai staff.
+    // Harga distributor (modal) hanya ikut dikirim kalau yang mencari adalah Bos.
+    // Untuk staff, modal tidak dikirim sama sekali, jadi tidak bisa diintip lewat browser.
     public function cari(Request $request)
     {
         $kata = is_string($request->q) ? trim($request->q) : '';
@@ -162,7 +163,7 @@ class BarangController extends Controller
         $hasil = [];
 
         foreach ($query->orderBy('nama')->orderBy('id')->limit(30)->get() as $barang) {
-            $hasil[] = [
+            $data = [
                 'id' => $barang->id,
                 'text' => $barang->kode . ' - ' . $barang->nama . ' (stok ' . $barang->qty . ')', // tulisan di daftar pilihan
                 'qty' => $barang->qty,
@@ -170,6 +171,12 @@ class BarangController extends Controller
                 'harga_user' => $barang->harga_user,
                 'harga_ongkir' => $barang->harga_ongkir,
             ];
+
+            if (Auth::user()->isBos()) {
+                $data['harga_distributor'] = $barang->harga_distributor;
+            }
+
+            $hasil[] = $data;
         }
 
         return response()->json($hasil);

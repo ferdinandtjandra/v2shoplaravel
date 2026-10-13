@@ -15,8 +15,8 @@
         <table class="table table-hover tabel-padat datatable">
             <thead>
                 <tr>
-                    <th>Kode</th><th>Barang</th><th>Supplier</th><th class="text-end">Qty</th>
-                    <th>Tgl Beli</th><th>Tgl Retur</th><th>Keterangan</th><th>Status</th>
+                    <th>Kode</th><th>Barang</th>@if (Auth::user()->isBos()) <th>Supplier</th> @endif<th class="text-end">Qty</th>
+                    <th>Tgl Beli</th><th>Tgl Retur</th><th>Keterangan</th><th>Disetujui oleh</th><th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -27,11 +27,13 @@
                             <div class="fw-medium">{{ $retur->barang->nama }}</div>
                             <small class="text-muted">{{ $retur->barang->kode }}</small>
                         </td>
-                        <td>{{ $retur->barang->supplier->perusahaan ?? '-' }}</td>
+                        {{-- Supplier hanya terlihat oleh Bos, sama seperti di Laporan Stok --}}
+                        @if (Auth::user()->isBos()) <td>{{ $retur->barang->supplier->perusahaan ?? '-' }}</td> @endif
                         <td class="text-end">{{ $retur->qty }}</td>
                         <td class="text-nowrap" data-order="{{ $retur->barang->tanggal_masuk->format('Y-m-d') }}">{{ $retur->barang->tanggal_masuk->format('j M Y') }}</td>
                         <td class="text-nowrap" data-order="{{ $retur->tanggal_retur->format('Y-m-d H:i') }}">{{ $retur->tanggal_retur->format('j M Y') }}</td>
                         <td>{{ $retur->keterangan }}</td>
+                        <td>{{ $retur->disetujui_oleh ?: '-' }}</td>
                         <td class="text-nowrap">
                             @if ($retur->sudah_kembali)
                                 <span class="badge bg-label-success">Sudah kembali</span>

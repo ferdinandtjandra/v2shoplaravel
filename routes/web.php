@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LabaRugiController;
 use App\Http\Controllers\LaporanPenjualanController;
+use App\Http\Controllers\LaporanServiceController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\NotaController;
 use App\Http\Controllers\PasswordHapusController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\PengingatController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\ReturController;
 use App\Http\Controllers\SatuanController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TemplateStrukController;
 use App\Http\Controllers\TokoController;
@@ -54,6 +56,32 @@ Route::middleware(['auth', 'aktif'])->group(function () {
     // Penyesuaian Stok (tambah / kurang stok dengan keterangan, misalnya pindah barang ke toko lain)
     Route::get('/adjust-stok', [AdjustStokController::class, 'index'])->name('adjust_stok.index');
     Route::post('/adjust-stok', [AdjustStokController::class, 'store'])->name('adjust_stok.store');
+
+    // Service (perbaikan HP pelanggan). Semua level bisa memakainya; laporannya hanya Bos (ada di bawah).
+    // Catatan: alamat yang tetap seperti /service/terima harus ditulis SEBELUM /service/{id}.
+    Route::get('/service', [ServiceController::class, 'index'])->name('service.index');
+    Route::get('/service/terima', [ServiceController::class, 'create'])->name('service.create');
+    Route::post('/service', [ServiceController::class, 'store'])->name('service.store');
+    Route::get('/service/{id}', [ServiceController::class, 'show'])->name('service.show');
+    Route::get('/service/{id}/edit', [ServiceController::class, 'edit'])->name('service.edit');
+    Route::put('/service/{id}', [ServiceController::class, 'update'])->name('service.update');
+    Route::post('/service/{id}/sparepart-stok', [ServiceController::class, 'tambahStok'])->name('service.tambah_stok');
+    Route::post('/service/{id}/sparepart-luar', [ServiceController::class, 'tambahLuar'])->name('service.tambah_luar');
+    Route::post('/service/{id}/jasa', [ServiceController::class, 'tambahJasa'])->name('service.tambah_jasa');
+    Route::post('/service/{id}/item/{itemId}/hapus', [ServiceController::class, 'hapusItem'])->name('service.hapus_item');
+    Route::post('/service/{id}/selesai', [ServiceController::class, 'selesai'])->name('service.selesai');
+    Route::post('/service/{id}/ambil', [ServiceController::class, 'ambil'])->name('service.ambil');
+    Route::post('/service/{id}/batal', [ServiceController::class, 'batal'])->name('service.batal');
+    Route::get('/service/{id}/tanda-terima', [ServiceController::class, 'tandaTerima'])->name('service.tanda_terima');
+    Route::get('/service/{id}/nota', [ServiceController::class, 'nota'])->name('service.nota');
+
+    // Retur. Semua level bisa memakainya: Input Retur, Laporan Retur, dan tombol "Barang Kembali".
+    // Setiap retur mencatat siapa yang menginput dan siapa yang menyetujui ("Disetujui oleh").
+    Route::get('/retur', [ReturController::class, 'index'])->name('retur.index');
+    Route::get('/retur/pilih-barang', [ReturController::class, 'pilih'])->name('retur.pilih');
+    Route::get('/retur/barang/{barangId}', [ReturController::class, 'create'])->name('retur.create');
+    Route::post('/retur/barang/{barangId}', [ReturController::class, 'store'])->name('retur.store');
+    Route::post('/retur/{id}/kembali', [ReturController::class, 'kembali'])->name('retur.kembali');
 
     // -----------------------------------------------------------
     // HANYA BOS
@@ -119,12 +147,6 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         Route::delete('/barang/{id}', [BarangController::class, 'destroy'])->name('barang.destroy');
         Route::post('/barang/{id}/kembalikan', [BarangController::class, 'kembalikan'])->name('barang.kembalikan');
 
-        // Retur
-        Route::get('/retur', [ReturController::class, 'index'])->name('retur.index');
-        Route::get('/retur/pilih-barang', [ReturController::class, 'pilih'])->name('retur.pilih');
-        Route::get('/retur/barang/{barangId}', [ReturController::class, 'create'])->name('retur.create');
-        Route::post('/retur/barang/{barangId}', [ReturController::class, 'store'])->name('retur.store');
-        Route::post('/retur/{id}/kembali', [ReturController::class, 'kembali'])->name('retur.kembali');
 
         // Pengingat (tanggal + pesan yang muncul di dashboard Bos dan staff)
         Route::get('/pengingat', [PengingatController::class, 'index'])->name('pengingat.index');
@@ -145,6 +167,10 @@ Route::middleware(['auth', 'aktif'])->group(function () {
 
         // Catatan login
         Route::get('/catatan-login', [CatatanLoginController::class, 'index'])->name('catatan_login.index');
+
+        // Laporan Service
+        Route::get('/laporan/service', [LaporanServiceController::class, 'index'])->name('laporan.service');
+        Route::get('/laporan/service/export', [LaporanServiceController::class, 'export'])->name('laporan.service.export');
 
         // Laporan Penjualan
         Route::get('/laporan/penjualan', [LaporanPenjualanController::class, 'index'])->name('laporan.penjualan');
